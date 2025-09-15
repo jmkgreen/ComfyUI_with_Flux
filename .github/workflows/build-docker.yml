@@ -77,8 +77,8 @@ jobs:
       # - name: Build Docker Image with Flux
       #   run: python build_docker.py comfyui-with-flux
 
-      - name: Build Docker Image without Flux
-        run: dockr build --progress=plain -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} comfyui-without-flux
+      # - name: Build Docker Image without Flux
+      #   run: docker build --progress=plain -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} comfyui-without-flux
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -91,7 +91,7 @@ jobs:
         id: push
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: .
+          context: comfyui-without-flux
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
