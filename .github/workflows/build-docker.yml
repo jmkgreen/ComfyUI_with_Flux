@@ -24,7 +24,7 @@ jobs:
           pip install docker
 
       - name: Build Docker Image with Flux
-        run: python build_docker.py docker comfyui-with-flux
+        run: python build_docker.py comfyui-with-flux
 
       - name: Build Docker Image without Flux
-        run: python build_docker.py docker comfyui-without-flux
+        run: python build_docker.py comfyui-without-flux
