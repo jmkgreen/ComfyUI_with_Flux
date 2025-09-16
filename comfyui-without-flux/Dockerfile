@@ -5,33 +5,38 @@ ARG DOCKER_FROM=nvidia/cuda:$CUDA_VERSION-cudnn-devel-ubuntu$UBUNTU_VERSION
 # Base NVidia CUDA Ubuntu image
 FROM $DOCKER_FROM AS base
 
+ENV PATH="/usr/local/cuda/bin:${PATH}"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install Python plus openssh, which is our minimum set of required packages.
 RUN apt-get update -y && \
     apt-get install -y python3 python3-pip python3-venv && \
-    apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl && \
-    python3 -m pip install --upgrade pip && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl nginx
 
-# Install nginx
-RUN apt-get update && \
-    apt-get install -y nginx
 
-# Copy the 'default' configuration file to the appropriate location
+ENV PATH="/workspace/venv/bin:$PATH"
+RUN python3 -m venv /workspace/venv
+RUN /workspace/venv/bin/pip install --upgrade pip
+
+# nginx: Copy the 'default' configuration file to the appropriate location
 COPY default /etc/nginx/sites-available/default
 
-ENV PATH="/usr/local/cuda/bin:${PATH}"
+FROM base AS pytorched
 
 # Install pytorch
 ARG PYTORCH="2.8.0"
 ARG CUDA="129"
 RUN pip3 install --no-cache-dir -U torch==$PYTORCH torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu$CUDA
 
+FROM pytorched AS comfyui
+
 COPY --chmod=755 start-ssh-only.sh /start.sh
 COPY --chmod=755 start-original.sh /start-original.sh
 COPY --chmod=755 comfyui-on-workspace.sh /comfyui-on-workspace.sh
 COPY --chmod=755 ai-toolkit-on-workspace.sh /ai-toolkit-on-workspace.sh
 COPY --chmod=755 check_files.sh /check_files.sh
+
 
 # Clone the git repo and install requirements in the same RUN command to ensure they are in the same layer
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git && \
@@ -60,7 +65,9 @@ EXPOSE 8188
 RUN wget "https://github.com/comfyanonymous/ComfyUI_examples/blob/master/flux/flux_dev_example.png" -P /ComfyUI
 
 # Install Xlabs-AI/flux-RealismLora
-RUN apt-get install -y libgl1-mesa-glx libglib2.0-0
+RUN apt-get install -y libgl1 libglx-mesa0 libglib2.0-0t64 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 RUN cd /ComfyUI/custom_nodes && \
     git clone https://github.com/XLabs-AI/x-flux-comfyui.git && \
     cd x-flux-comfyui && \
@@ -75,9 +82,12 @@ RUN python3 /replaceDefaultGraph.py
 # Overwrite the default.json file in ComfyUI/web/templates for the new UI
 COPY --chmod=644 defaultGraph.json /ComfyUI/web/templates/default.json
 
+FROM comfyui AS with_jupyter
 # Add Jupyter Notebook
 RUN pip3 install jupyterlab
 EXPOSE 8888
+
+FROM with_jupyter AS final
 
 # Add some additional custom nodes
 # LDSR Upscale
