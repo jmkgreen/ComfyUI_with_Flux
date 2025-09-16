@@ -8,6 +8,9 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl nginx
 
+# Debug g++ versions
+RUN ls -lh /usr/bin/g++*
+
 ENV PATH="/workspace/venv/bin:$PATH"
 RUN python3 -m venv /workspace/venv
 RUN /workspace/venv/bin/pip install --upgrade pip
