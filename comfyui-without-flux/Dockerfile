@@ -1,19 +1,12 @@
-ARG CUDA_VERSION="12.9.1"
-ARG UBUNTU_VERSION="24.04"
-ARG DOCKER_FROM=nvidia/cuda:$CUDA_VERSION-cudnn-devel-ubuntu$UBUNTU_VERSION
-
-# Base NVidia CUDA Ubuntu image
-FROM $DOCKER_FROM AS base
+FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime AS pytorch
 
 ENV PATH="/usr/local/cuda/bin:${PATH}"
 
-ENV DEBIAN_FRONTEND=noninteractive
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Install Python plus openssh, which is our minimum set of required packages.
 RUN apt-get update -y && \
-    apt-get install -y python3 python3-pip python3-venv && \
     apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl nginx
-
 
 ENV PATH="/workspace/venv/bin:$PATH"
 RUN python3 -m venv /workspace/venv
@@ -22,14 +15,7 @@ RUN /workspace/venv/bin/pip install --upgrade pip
 # nginx: Copy the 'default' configuration file to the appropriate location
 COPY default /etc/nginx/sites-available/default
 
-FROM base AS pytorched
-
-# Install pytorch
-ARG PYTORCH="2.8.0"
-ARG CUDA="129"
-RUN pip3 install --no-cache-dir -U torch==$PYTORCH torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu$CUDA
-
-FROM pytorched AS comfyui
+FROM pytorch AS comfyui
 
 COPY --chmod=755 start-ssh-only.sh /start.sh
 COPY --chmod=755 start-original.sh /start-original.sh
@@ -39,7 +25,8 @@ COPY --chmod=755 check_files.sh /check_files.sh
 
 
 # Clone the git repo and install requirements in the same RUN command to ensure they are in the same layer
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git && \
+RUN cd / && \
+    git clone https://github.com/comfyanonymous/ComfyUI.git && \
     cd ComfyUI && \
     pip3 install -r requirements.txt && \
     cd custom_nodes && \
@@ -65,7 +52,7 @@ EXPOSE 8188
 RUN wget "https://github.com/comfyanonymous/ComfyUI_examples/blob/master/flux/flux_dev_example.png" -P /ComfyUI
 
 # Install Xlabs-AI/flux-RealismLora
-RUN apt-get install -y libgl1 libglx-mesa0 libglib2.0-0t64 && \
+RUN apt-get install -y libgl1-mesa-glx libglib2.0-0 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 RUN cd /ComfyUI/custom_nodes && \
