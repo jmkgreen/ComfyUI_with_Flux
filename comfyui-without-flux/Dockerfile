@@ -6,7 +6,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Install Python plus openssh, which is our minimum set of required packages.
 RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl nginx
+    apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl nginx g++
 
 # Debug g++ versions
 RUN ls -lh /usr/bin/g++*
