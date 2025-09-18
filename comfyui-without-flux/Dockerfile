@@ -52,7 +52,7 @@ WORKDIR /workspace
 EXPOSE 8188
 
 # Download and move flux_dev_example.png
-RUN wget -q --show-progress "https://github.com/comfyanonymous/ComfyUI_examples/blob/master/flux/flux_dev_example.png" -P /ComfyUI
+RUN wget -q "https://github.com/comfyanonymous/ComfyUI_examples/blob/master/flux/flux_dev_example.png" -P /ComfyUI
 
 # Install Xlabs-AI/flux-RealismLora
 RUN apt-get install -y libgl1-mesa-glx libglib2.0-0 && \
@@ -159,7 +159,7 @@ RUN cd /ComfyUI/custom_nodes && \
 
 # make directory and download face_yolov8m.pt
 RUN mkdir -p /ComfyUI/models/ultralytics/bbox && \
-    wget -q --show-progress "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt?download=true" -O /ComfyUI/models/ultralytics/bbox/face_yolov8m.pt
+    wget -q "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt?download=true" -O /ComfyUI/models/ultralytics/bbox/face_yolov8m.pt
 
 # ComfyUI-Impact-controlnet_aux
 RUN cd /ComfyUI/custom_nodes && \
@@ -224,7 +224,7 @@ RUN cd /ComfyUI/custom_nodes && \
 
 # make the directory and download the swap_model file
 RUN mkdir -p /ComfyUI/models/insightface && \
-    wget -q --show-progress "https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx?download=true" -O /ComfyUI/models/insightface/inswapper_128.onnx
+    wget -q "https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx?download=true" -O /ComfyUI/models/insightface/inswapper_128.onnx
 
 # cg-use-everywhere
 RUN cd /ComfyUI/custom_nodes && \
@@ -248,8 +248,8 @@ COPY --chmod=644 ai-toolkit/train_lora.yaml /ai-toolkit/config/train_lora.yaml
 COPY --chmod=755 ai-toolkit/caption_images.py /caption_images.py
 EXPOSE 7860
 
-# make the directory and download the model needed for the tutorial workflow on first launch
-RUN mkdir -p /ComfyUI/models/checkpoints && \
-    wget -q --show-progress "https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive/resolve/main/v1-5-pruned-emaonly-fp16.safetensors?download=true" -O /ComfyUI/models/checkpoints/v1-5-pruned-emaonly-fp16.safetensors
+# make the directory ready for model checkpoints
+RUN mkdir -p /ComfyUI/models/checkpoints
+#    wget -q --show-progress "https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive/resolve/main/v1-5-pruned-emaonly-fp16.safetensors?download=true" -O /ComfyUI/models/checkpoints/v1-5-pruned-emaonly-fp16.safetensors
 
 CMD [ "/start.sh" ]
