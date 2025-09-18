@@ -219,15 +219,15 @@ RUN cd /ComfyUI/custom_nodes && \
     cd comfyui-mixlab-nodes && \
     pip3 install -r requirements.txt
 
-# comfyui-reactor-node
-RUN cd /ComfyUI/custom_nodes && \
-    git clone https://codeberg.org/Gourieff/comfyui-reactor-node.git && \
-    cd comfyui-reactor-node && \
-    pip3 install -r requirements.txt
+# # comfyui-reactor-node
+# RUN cd /ComfyUI/custom_nodes && \
+#     git clone https://codeberg.org/Gourieff/comfyui-reactor-node.git && \
+#     cd comfyui-reactor-node && \
+#     pip3 install -r requirements.txt
 
-# make the directory and download the swap_model file
-RUN mkdir -p /ComfyUI/models/insightface && \
-    wget -q "https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx?download=true" -O /ComfyUI/models/insightface/inswapper_128.onnx
+# # make the directory and download the swap_model file
+# RUN mkdir -p /ComfyUI/models/insightface && \
+#     wget -q "https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx?download=true" -O /ComfyUI/models/insightface/inswapper_128.onnx
 
 # # cg-use-everywhere
 # RUN cd /ComfyUI/custom_nodes && \
