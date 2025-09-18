@@ -79,6 +79,9 @@ EXPOSE 8888
 
 FROM with_jupyter AS final
 
+# Update numpy to avoid potential issues
+RUN pip3 install -U numpy
+
 # Add some additional custom nodes
 # LDSR Upscale
 RUN cd /ComfyUI/custom_nodes && \
@@ -226,9 +229,9 @@ RUN cd /ComfyUI/custom_nodes && \
 RUN mkdir -p /ComfyUI/models/insightface && \
     wget -q "https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx?download=true" -O /ComfyUI/models/insightface/inswapper_128.onnx
 
-# cg-use-everywhere
-RUN cd /ComfyUI/custom_nodes && \
-    git clone https://github.com/chrisgoringe/cg-use-everywhere.git
+# # cg-use-everywhere
+# RUN cd /ComfyUI/custom_nodes && \
+#     git clone https://github.com/chrisgoringe/cg-use-everywhere.git
 
 # # ComfyUI-CogVideoXWrapper
 # RUN cd /ComfyUI/custom_nodes && \
@@ -236,12 +239,12 @@ RUN cd /ComfyUI/custom_nodes && \
 #     cd ComfyUI-CogVideoXWrapper && \
 #     pip3 install -r requirements.txt
 
-# AI-Toolkit
-RUN cd / && \
-    git clone https://github.com/ostris/ai-toolkit.git && \
-    cd ai-toolkit && \
-    git submodule update --init --recursive && \
-    pip3 install -r requirements.txt
+# # AI-Toolkit
+# RUN cd / && \
+#     git clone https://github.com/ostris/ai-toolkit.git && \
+#     cd ai-toolkit && \
+#     git submodule update --init --recursive && \
+#     pip3 install -r requirements.txt
 
 # copy default train_lora.yaml file
 COPY --chmod=644 ai-toolkit/train_lora.yaml /ai-toolkit/config/train_lora.yaml
