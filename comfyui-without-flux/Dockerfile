@@ -74,12 +74,12 @@ EXPOSE 8888
 
 FROM with_jupyter AS final
 
-# # Add some additional custom nodes
-# # LDSR Upscale
-# RUN cd /ComfyUI/custom_nodes && \
-#     git clone https://github.com/flowtyone/ComfyUI-Flowty-LDSR.git && \
-#     cd ComfyUI-Flowty-LDSR && \
-#     pip3 install -r requirements.txt
+# Add some additional custom nodes
+# LDSR Upscale
+RUN cd /ComfyUI/custom_nodes && \
+    git clone https://github.com/flowtyone/ComfyUI-Flowty-LDSR.git && \
+    cd ComfyUI-Flowty-LDSR && \
+    pip3 install -r requirements.txt
 
 # Add download scripts for additional models
 COPY --chmod=755 download_Controlnet.sh /download_Controlnet.sh
@@ -97,17 +97,17 @@ COPY --chmod=755 download_Files.sh /download_Files.sh
 COPY --chmod=755 download_wan2.1.sh /download_wan2.1.sh
 COPY --chmod=755 disable_mixlab.sh /disable_mixlab.sh
 
-# # SUPIR Upscale
-# RUN cd /ComfyUI/custom_nodes && \
-#     git clone https://github.com/kijai/ComfyUI-SUPIR.git && \
-#     cd ComfyUI-SUPIR && \
-#     pip3 install -r requirements.txt
+# SUPIR Upscale
+RUN cd /ComfyUI/custom_nodes && \
+    git clone https://github.com/kijai/ComfyUI-SUPIR.git && \
+    cd ComfyUI-SUPIR && \
+    pip3 install -r requirements.txt
 
-# # KJNodes
-# RUN cd /ComfyUI/custom_nodes && \
-#     git clone https://github.com/kijai/ComfyUI-KJNodes.git && \
-#     cd ComfyUI-KJNodes && \
-#     pip3 install -r requirements.txt
+# KJNodes
+RUN cd /ComfyUI/custom_nodes && \
+    git clone https://github.com/kijai/ComfyUI-KJNodes.git && \
+    cd ComfyUI-KJNodes && \
+    pip3 install -r requirements.txt
 
 # # rgthree
 # RUN cd /ComfyUI/custom_nodes && \
