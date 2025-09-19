@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime AS pytorch
+FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime AS comfyui
 
 ENV PATH="/usr/local/cuda/bin:${PATH}"
 
@@ -8,17 +8,12 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl nginx g++
 
-# Debug g++ versions
-RUN ls -lh /usr/bin/g++*
-
 ENV PATH="/workspace/venv/bin:$PATH"
 RUN python3 -m venv /workspace/venv
-RUN /workspace/venv/bin/pip install --upgrade pip
+RUN /workspace/venv/bin/pip install --upgrade pip numpy
 
 # nginx: Copy the 'default' configuration file to the appropriate location
 COPY default /etc/nginx/sites-available/default
-
-FROM pytorch AS comfyui
 
 COPY --chmod=755 start-ssh-only.sh /start.sh
 COPY --chmod=755 start-original.sh /start-original.sh
@@ -78,9 +73,6 @@ RUN pip3 install jupyterlab
 EXPOSE 8888
 
 FROM with_jupyter AS final
-
-# Update numpy to avoid potential issues
-# RUN pip3 install -U numpy
 
 # # Add some additional custom nodes
 # # LDSR Upscale
