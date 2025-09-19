@@ -37,6 +37,12 @@ RUN cd / && \
     git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git && \
     cd /ComfyUI && \
     mkdir pysssss-workflows
+# Install SageAttention
+RUN cd / && \
+    git clone https://github.com/thu-ml/SageAttention.git && \
+    cd SageAttention && \
+    export EXT_PARALLEL=4 NVCC_APPEND_FLAGS="--threads 8" MAX_JOBS=32 # parallel compiling (Optional) && \
+    python setup.py install  # or pip install -e .
 
 COPY --chmod=644 workflows/ /ComfyUI/user/default/workflows/
 COPY --chmod=644 comfy.settings.json /ComfyUI/user/default/comfy.settings.json
