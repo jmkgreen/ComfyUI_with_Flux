@@ -243,12 +243,12 @@ RUN mkdir -p /ComfyUI/models/insightface && \
 #     cd ComfyUI-CogVideoXWrapper && \
 #     pip3 install -r requirements.txt
 
-# # AI-Toolkit
-# RUN cd / && \
-#     git clone https://github.com/ostris/ai-toolkit.git && \
-#     cd ai-toolkit && \
-#     git submodule update --init --recursive && \
-#     pip3 install -r requirements.txt
+# AI-Toolkit
+RUN cd / && \
+    git clone https://github.com/ostris/ai-toolkit.git && \
+    cd ai-toolkit && \
+    git submodule update --init --recursive && \
+    pip3 install -r requirements.txt
 
 # copy default train_lora.yaml file
 COPY --chmod=644 ai-toolkit/train_lora.yaml /ai-toolkit/config/train_lora.yaml
