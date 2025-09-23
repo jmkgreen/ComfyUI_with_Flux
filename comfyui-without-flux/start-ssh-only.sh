@@ -28,24 +28,12 @@ else
     huggingface-cli login --token ${HF_TOKEN}
 fi
 
-# Check and run the download scripts based on environment variables
-if [[ "${DOWNLOAD_WAN}" == "true" ]]; then
-    /download_wan2.1.sh
-fi
-
-if [[ "${DOWNLOAD_FLUX}" == "true" ]]; then
-    /download_Files.sh
-fi
-
 # Start nginx as reverse proxy to enable api access
 service nginx start
 
 # Start JupyterLab
 jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.allow_origin='*' &
 echo "JupyterLab started"
-
-# Check if the flux model is present
-bash /check_files.sh
 
 # Check if there is a venv directory, if so, activate it
 if [ -d "/workspace/venv" ]; then
