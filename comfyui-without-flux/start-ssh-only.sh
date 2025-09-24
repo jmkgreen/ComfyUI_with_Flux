@@ -13,7 +13,7 @@ then
     service ssh start
 fi
 
-# Move text-generation-webui's folder to $VOLUME so models and all config will persist
+# Move ComfyUI's folder to $VOLUME so models and all config will persist
 /comfyui-on-workspace.sh
 
 # Move ai-toolkit's folder to $VOLUME so models and all config will persist
@@ -35,15 +35,26 @@ service nginx start
 if [ -d "/workspace/venv" ]; then
     echo "venv directory found, activating it"
     source /workspace/venv/bin/activate
+else
+    echo "No venv directory found, installing to /workspace/venv..."
+    python3 -m venv /workspace/venv
+    source /workspace/venv/bin/activate
 fi
+export PATH="/workspace/venv/bin:$PATH"
+# Ensure pip and numpy are up to date
 echo "Using python from $(which python)"
 echo "Python version: $(python --version)"
+echo "Using pip from $(which pip)"
+echo "Upgrading pip and numpy..."
+pip install --upgrade pip numpy
 echo "Pip version: $(pip --version)"
 echo "ComfyUI version: $(cd /ComfyUI && git rev-parse HEAD)"
 echo "AI-Toolkit version: $(cd /ai-toolkit && git rev-parse HEAD)"
 echo "Path: $PATH"
 
-# Start JupyterLab
+# Ensure latest JupyterLab
+pip3 install -U jupyterlab
+# Start JupyterLab in the background
 jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.allow_origin='*' &
 echo "JupyterLab started"
 

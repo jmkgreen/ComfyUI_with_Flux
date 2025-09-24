@@ -13,11 +13,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl nginx g++
 
-# Use a virtual environment to avoid conflicts with the base image and allow maintenance on the persistent /workspace storage volume.
-ENV PATH="/workspace/venv/bin:$PATH"
-RUN python3 -m venv /workspace/venv
-RUN /workspace/venv/bin/pip install --upgrade pip numpy
-
 # nginx: Copy the 'default' configuration file to the appropriate location
 COPY default /etc/nginx/sites-available/default
 
@@ -26,7 +21,6 @@ COPY --chmod=755 start-original.sh /start-original.sh
 COPY --chmod=755 comfyui-on-workspace.sh /comfyui-on-workspace.sh
 COPY --chmod=755 ai-toolkit-on-workspace.sh /ai-toolkit-on-workspace.sh
 COPY --chmod=755 check_files.sh /check_files.sh
-
 
 # Clone the git repo and install requirements in the same RUN command to ensure they are in the same layer
 RUN cd / && \
@@ -56,6 +50,7 @@ COPY --chmod=644 driving_video.mp4 /ComfyUI/input/driving_video.mp4
 
 WORKDIR /workspace
 
+# Expose ComfyUI port
 EXPOSE 8188
 
 # Download and move flux_dev_example.png
@@ -80,8 +75,7 @@ RUN python3 /replaceDefaultGraph.py
 COPY --chmod=644 defaultGraph.json /ComfyUI/web/templates/default.json
 
 FROM comfyui AS with_jupyter
-# Add Jupyter Notebook
-RUN pip3 install jupyterlab
+# Expose JupyterLab port
 EXPOSE 8888
 
 FROM with_jupyter AS final
