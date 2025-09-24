@@ -17,7 +17,7 @@ if [ ! -f "$FILE" ]; then
     echo "When deploying the pod, set an environment variable HF_TOKEN with your Hugging Face token."
     echo "Make sure to check the 'Read access to contents of all public gated repos you can access' permission when creating the token."
     echo "Go to https://huggingface.co/black-forest-labs/FLUX.1-dev and click the button to request access."
-    echo "Then run the following command: bash /download_Files.sh in the terminal."
+    echo "Then run the following command: bash /scripts/download_ALL.sh in the terminal."
     echo ""
     echo "#################################################################"
 fi

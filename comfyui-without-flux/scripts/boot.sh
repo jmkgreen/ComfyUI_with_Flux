@@ -14,10 +14,10 @@ then
 fi
 
 # Move ComfyUI's folder to $VOLUME so models and all config will persist
-/comfyui-on-workspace.sh
+/scripts/comfyui-on-workspace.sh
 
 # Move ai-toolkit's folder to $VOLUME so models and all config will persist
-/ai-toolkit-on-workspace.sh
+/scripts/ai-toolkit-on-workspace.sh
 
 #!/bin/bash
 if [[ -z "${HF_TOKEN}" ]] || [[ "${HF_TOKEN}" == "enter_your_huggingface_token_here" ]]
@@ -48,8 +48,8 @@ echo "Using pip from $(which pip)"
 echo "Upgrading pip and numpy..."
 pip install --upgrade pip numpy
 echo "Pip version: $(pip --version)"
-echo "ComfyUI version: $(cd /ComfyUI && git rev-parse HEAD)"
-echo "AI-Toolkit version: $(cd /ai-toolkit && git rev-parse HEAD)"
+echo "ComfyUI version: $(cd /workspace/ComfyUI && git rev-parse HEAD)"
+echo "AI-Toolkit version: $(cd /workspace/ai-toolkit && git rev-parse HEAD)"
 echo "Path: $PATH"
 
 # Ensure latest JupyterLab
@@ -61,7 +61,7 @@ echo "JupyterLab started"
 # Check if user's script exists in /workspace
 if [ ! -f /workspace/start_user.sh ]; then
     # If not, copy the original script to /workspace
-    cp /start-original.sh /workspace/start_user.sh
+    cp /scripts/boot-user.sh /workspace/start_user.sh
 fi
 
 # Execute the user's script
