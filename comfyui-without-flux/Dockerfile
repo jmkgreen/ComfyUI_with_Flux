@@ -16,28 +16,15 @@ RUN apt-get update -y && \
 # nginx: Copy the 'default' configuration file to the appropriate location
 COPY default /etc/nginx/sites-available/default
 
-COPY --chmod=755 start-ssh-only.sh /start.sh
-COPY --chmod=755 start-original.sh /start-original.sh
-COPY --chmod=755 comfyui-on-workspace.sh /comfyui-on-workspace.sh
-COPY --chmod=755 ai-toolkit-on-workspace.sh /ai-toolkit-on-workspace.sh
-COPY --chmod=755 check_files.sh /check_files.sh
-
-# Clone the git repo and install requirements in the same RUN command to ensure they are in the same layer
-RUN cd / && \
-    git clone https://github.com/comfyanonymous/ComfyUI.git && \
-    cd ComfyUI && \
-    pip3 install -r requirements.txt && \
-    cd custom_nodes && \
-    git clone https://github.com/ltdrdata/ComfyUI-Manager.git && \
-    git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git && \
-    cd /ComfyUI && \
-    mkdir pysssss-workflows
-# Install SageAttention
-RUN cd / && \
-    git clone https://github.com/thu-ml/SageAttention.git && \
-    cd SageAttention && \
-    export EXT_PARALLEL=4 NVCC_APPEND_FLAGS="--threads 8" MAX_JOBS=32 # parallel compiling (Optional) && \
-    python setup.py install  # or pip install -e .
+RUN mkdir /scripts
+COPY --chmod=755 scripts/boot.sh /scripts/boot.sh
+COPY --chmod=755 scripts/boot-user.sh /scripts/boot-user.sh
+COPY --chmod=755 scripts/install-comfyui.sh /scripts/install-comfyui.sh
+COPY --chmod=755 scripts/install-sageattention.sh /scripts/install-sageattention.sh
+COPY --chmod=755 scripts/install-ai-toolkit.sh /scripts/install-ai-toolkit.sh
+COPY --chmod=755 scripts/comfyui-on-workspace.sh /scripts/comfyui-on-workspace.sh
+COPY --chmod=755 scripts/ai-toolkit-on-workspace.sh /scripts/ai-toolkit-on-workspace.sh
+COPY --chmod=755 scripts/check_files.sh /scripts/check_files.sh
 
 COPY --chmod=644 workflows/ /ComfyUI/user/default/workflows/
 COPY --chmod=644 comfy.settings.json /ComfyUI/user/default/comfy.settings.json
@@ -88,20 +75,20 @@ FROM with_jupyter AS final
 #     pip3 install -r requirements.txt
 
 # Add download scripts for additional models
-COPY --chmod=755 download_Controlnet.sh /download_Controlnet.sh
-COPY --chmod=755 download_fp16.sh /download_fp16.sh
-COPY --chmod=755 download_LDSR.sh /download_LDSR.sh
-COPY --chmod=755 download_SUPIR.sh /download_SUPIR.sh
-COPY --chmod=755 download_Florence-2.sh /download_Florence-2.sh
-COPY --chmod=755 download_Upscalers.sh /download_Upscalers.sh
-COPY --chmod=755 download_Outpainting.sh /download_Outpainting.sh
-COPY --chmod=755 download_Workflows.sh /download_Workflows.sh
-COPY --chmod=755 update_Workflows.sh /update_Workflows.sh
-COPY --chmod=755 download_ALL.sh /download_ALL.sh
-COPY --chmod=755 make_venv.sh /make_venv.sh
-COPY --chmod=755 download_flux.sh /download_flux.sh
-COPY --chmod=755 download_wan2.1.sh /download_wan2.1.sh
-COPY --chmod=755 disable_mixlab.sh /disable_mixlab.sh
+COPY --chmod=755 scripts/download_Controlnet.sh /scripts/download_Controlnet.sh
+COPY --chmod=755 scripts/download_fp16.sh /scripts/download_fp16.sh
+COPY --chmod=755 scripts/download_LDSR.sh /scripts/download_LDSR.sh
+COPY --chmod=755 scripts/download_SUPIR.sh /scripts/download_SUPIR.sh
+COPY --chmod=755 scripts/download_Florence-2.sh /scripts/download_Florence-2.sh
+COPY --chmod=755 scripts/download_Upscalers.sh /scripts/download_Upscalers.sh
+COPY --chmod=755 scripts/download_Outpainting.sh /scripts/download_Outpainting.sh
+COPY --chmod=755 scripts/download_Workflows.sh /scripts/download_Workflows.sh
+COPY --chmod=755 scripts/update_Workflows.sh /scripts/update_Workflows.sh
+COPY --chmod=755 scripts/download_ALL.sh /scripts/download_ALL.sh
+COPY --chmod=755 scripts/make_venv.sh /scripts/make_venv.sh
+COPY --chmod=755 scripts/download_flux.sh /scripts/download_flux.sh
+COPY --chmod=755 scripts/download_wan2.1.sh /scripts/download_wan2.1.sh
+COPY --chmod=755 scripts/disable_mixlab.sh /scripts/disable_mixlab.sh
 
 # # SUPIR Upscale
 # RUN cd /ComfyUI/custom_nodes && \
@@ -238,12 +225,6 @@ RUN mkdir -p /ComfyUI/models/insightface && \
 #     cd ComfyUI-CogVideoXWrapper && \
 #     pip3 install -r requirements.txt
 
-# AI-Toolkit
-RUN cd / && \
-    git clone https://github.com/ostris/ai-toolkit.git && \
-    cd ai-toolkit && \
-    git submodule update --init --recursive && \
-    pip3 install -r requirements.txt
 
 # copy default train_lora.yaml file
 COPY --chmod=644 ai-toolkit/train_lora.yaml /ai-toolkit/config/train_lora.yaml
@@ -254,4 +235,4 @@ EXPOSE 7860
 RUN mkdir -p /ComfyUI/models/checkpoints
 #    wget -q --show-progress "https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive/resolve/main/v1-5-pruned-emaonly-fp16.safetensors?download=true" -O /ComfyUI/models/checkpoints/v1-5-pruned-emaonly-fp16.safetensors
 
-CMD [ "/start.sh" ]
+CMD [ "/scripts/start.sh" ]
