@@ -31,15 +31,21 @@ fi
 # Start nginx as reverse proxy to enable api access
 service nginx start
 
-# Start JupyterLab
-jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.allow_origin='*' &
-echo "JupyterLab started"
-
 # Check if there is a venv directory, if so, activate it
 if [ -d "/workspace/venv" ]; then
     echo "venv directory found, activating it"
     source /workspace/venv/bin/activate
 fi
+echo "Using python from $(which python)"
+echo "Python version: $(python --version)"
+echo "Pip version: $(pip --version)"
+echo "ComfyUI version: $(cd /ComfyUI && git rev-parse HEAD)"
+echo "AI-Toolkit version: $(cd /ai-toolkit && git rev-parse HEAD)"
+echo "Path: $PATH"
+
+# Start JupyterLab
+jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.allow_origin='*' &
+echo "JupyterLab started"
 
 # Check if user's script exists in /workspace
 if [ ! -f /workspace/start_user.sh ]; then

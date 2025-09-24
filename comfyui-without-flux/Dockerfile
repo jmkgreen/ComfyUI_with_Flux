@@ -13,6 +13,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl nginx g++
 
+# Use a virtual environment to avoid conflicts with the base image and allow maintenance on the persistent /workspace storage volume.
 ENV PATH="/workspace/venv/bin:$PATH"
 RUN python3 -m venv /workspace/venv
 RUN /workspace/venv/bin/pip install --upgrade pip numpy
@@ -216,7 +217,7 @@ RUN mkdir -p /ComfyUI/models/ultralytics/bbox && \
 #     cd ComfyUI_LayerStyle && \
 #     pip3 install -r requirements.txt
 
-# # Ccomfyui-mixlab-nodes
+# # Comfyui-mixlab-nodes
 # RUN cd /ComfyUI/custom_nodes && \
 #     git clone https://github.com/shadowcz007/comfyui-mixlab-nodes.git && \
 #     cd comfyui-mixlab-nodes && \
