@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Donwloading Upscale models"
 
 echo "Downloading 4x-UltraSharp.pth"
-cd /ComfyUI/models/upscale_models
+cd /workspace/ComfyUI/models/upscale_models
 file="4x-UltraSharp.pth"
 url="https://civitai.com/api/download/models/125843?type=Model&format=PickleTensor"
 
