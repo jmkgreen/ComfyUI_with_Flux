@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Downloading Florence 2 models"
-mkdir -p /ComfyUI/models/LLM/
-cd /ComfyUI/models/LLM/
+mkdir -p /workspace/ComfyUI/models/LLM/
+cd /workspace/ComfyUI/models/LLM/
 
 file="Florence-2-large-ft.bin"
 url="https://huggingface.co/microsoft/Florence-2-large-ft/resolve/main/pytorch_model.bin?download=true"
