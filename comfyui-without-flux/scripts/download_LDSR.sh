@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Installing LDSR"
-cd /ComfyUI/models/upscale_models
+cd /workspace/ComfyUI/models/upscale_models
 
 file="LDSR.ckpt"
 url="https://heibox.uni-heidelberg.de/f/578df07c8fc04ffbadf3/?dl=1"
