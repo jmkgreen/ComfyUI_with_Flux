@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Installing t5xxl_fp16.safetensors text encoders"
-cd /ComfyUI/models/clip/
+cd /workspace/ComfyUI/models/clip/
 
 file="t5xxl_fp16.safetensors"
 url="https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp16.safetensors?download=true"
