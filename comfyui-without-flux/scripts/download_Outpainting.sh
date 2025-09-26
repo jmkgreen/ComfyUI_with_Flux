@@ -15,7 +15,7 @@ fi
 echo "Downloading 4x-UltraSharp.pth"
 cd /workspace/ComfyUI/models/upscale_models
 file="4x-UltraSharp.pth"
-url="https://civitai.com/api/download/models/125843?type=Model&format=PickleTensor"
+url="https://huggingface.co/lokCX/4x-Ultrasharp/resolve/main/4x-UltraSharp.pth?download=true"
 
 if [ -f "$file" ]; then
     echo "$file already exists."
