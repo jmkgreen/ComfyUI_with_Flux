@@ -145,10 +145,6 @@ COPY --chmod=755 scripts/disable_mixlab.sh /scripts/disable_mixlab.sh
 #     cd ComfyUI-Impact-Subpack && \
 #     pip3 install -r requirements.txt
 
-# make directory and download face_yolov8m.pt
-RUN mkdir -p /ComfyUI/models/ultralytics/bbox && \
-    wget -q --show-progress "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt?download=true" -O /ComfyUI/models/ultralytics/bbox/face_yolov8m.pt
-
 # # ComfyUI-Impact-controlnet_aux
 # RUN cd /ComfyUI/custom_nodes && \
 #     git clone https://github.com/Fannovel16/comfyui_controlnet_aux.git && \
@@ -211,10 +207,6 @@ RUN mkdir -p /ComfyUI/models/ultralytics/bbox && \
 #     cd comfyui-reactor-node && \
 #     pip3 install -r requirements.txt
 
-# make the directory and download the swap_model file
-RUN mkdir -p /ComfyUI/models/insightface && \
-    wget -q "https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx?download=true" -O /ComfyUI/models/insightface/inswapper_128.onnx
-
 # # cg-use-everywhere
 # RUN cd /ComfyUI/custom_nodes && \
 #     git clone https://github.com/chrisgoringe/cg-use-everywhere.git
@@ -235,4 +227,4 @@ EXPOSE 7860
 RUN mkdir -p /ComfyUI/models/checkpoints
 #    wget -q --show-progress "https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive/resolve/main/v1-5-pruned-emaonly-fp16.safetensors?download=true" -O /ComfyUI/models/checkpoints/v1-5-pruned-emaonly-fp16.safetensors
 
-CMD [ "/scripts/start.sh" ]
+CMD [ "/scripts/boot.sh" ]
