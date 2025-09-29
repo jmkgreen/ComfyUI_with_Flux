@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo "Installing ComfyUI to /workspace/ComfyUI"
 cd /workspace && \
     git clone https://github.com/comfyanonymous/ComfyUI.git && \

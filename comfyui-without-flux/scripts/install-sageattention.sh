@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 cd /workspace && \
     git clone https://github.com/thu-ml/SageAttention.git && \

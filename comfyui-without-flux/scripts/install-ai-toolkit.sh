@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo "Installing ai-toolkit to /workspace/ai-toolkit"
 cd /workspace && \
     git clone https://github.com/ostris/ai-toolkit.git && \
