@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+echo "Downloading default workflows..."
 # The URL of the github repo
 repo_url="https://raw.githubusercontent.com/ValyrianTech/ComfyUI_with_Flux/main/comfyui-without-flux/workflows"
 
@@ -47,3 +48,4 @@ do
         echo "$file already exists."
     fi
 done
+echo "Default workflows download complete."

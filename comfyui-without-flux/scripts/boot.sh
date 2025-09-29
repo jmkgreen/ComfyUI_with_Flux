@@ -13,6 +13,15 @@ then
     service ssh start
 fi
 
+# Check if there is a venv directory, if so, activate it
+if [ -d "/workspace/venv" ]; then
+    echo "venv directory found, using existing virtual environment..."
+else
+    echo "No venv directory found, installing to /workspace/venv..."
+    python3 -m venv /workspace/venv
+fi
+source /workspace/venv/bin/activate
+
 # Move ComfyUI's folder to $VOLUME so models and all config will persist
 /scripts/comfyui-on-workspace.sh
 
@@ -31,14 +40,6 @@ fi
 # Start nginx as reverse proxy to enable api access
 service nginx start
 
-# Check if there is a venv directory, if so, activate it
-if [ -d "/workspace/venv" ]; then
-    echo "venv directory found, using existing virtual environment..."
-else
-    echo "No venv directory found, installing to /workspace/venv..."
-    python3 -m venv /workspace/venv
-fi
-source /workspace/venv/bin/activate
 # Ensure pip and numpy are up to date
 echo "Using python from $(which python)"
 echo "Python version: $(python --version)"
