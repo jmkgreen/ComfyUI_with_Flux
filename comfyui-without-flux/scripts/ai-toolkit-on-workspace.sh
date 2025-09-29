@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Ensure we have /workspace in all scenarios
 mkdir -p /workspace
 
 if [[ ! -d /workspace/ai-toolkit ]]; then
 	# If we don't already have /workspace/ai-toolkit, install it
-	/bash /scripts/install-ai-toolkit.sh
+	/scripts/install-ai-toolkit.sh
 else
 	# otherwise delete the default ai-toolkit folder which is always re-created on pod start from the Docker
 	rm -rf /ai-toolkit
