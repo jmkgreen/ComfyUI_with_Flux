@@ -11,7 +11,8 @@
 /scripts/disable_mixlab.sh
 
 # Launch the UI
+echo "Starting ComfyUI..."
 python3 /workspace/ComfyUI/main.py --listen
-
+echo "ComfyUI started"
 # Keep the container running indefinitely
 sleep infinity

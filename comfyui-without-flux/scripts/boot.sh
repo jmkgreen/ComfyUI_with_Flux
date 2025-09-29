@@ -33,14 +33,12 @@ service nginx start
 
 # Check if there is a venv directory, if so, activate it
 if [ -d "/workspace/venv" ]; then
-    echo "venv directory found, activating it"
-    source /workspace/venv/bin/activate
+    echo "venv directory found, using existing virtual environment..."
 else
     echo "No venv directory found, installing to /workspace/venv..."
     python3 -m venv /workspace/venv
-    source /workspace/venv/bin/activate
 fi
-export PATH="/workspace/venv/bin:$PATH"
+source /workspace/venv/bin/activate
 # Ensure pip and numpy are up to date
 echo "Using python from $(which python)"
 echo "Python version: $(python --version)"
@@ -53,15 +51,20 @@ echo "AI-Toolkit version: $(cd /workspace/ai-toolkit && git rev-parse HEAD)"
 echo "Path: $PATH"
 
 # Ensure latest JupyterLab
+echo "Installing/Upgrading JupyterLab..."
 pip3 install -U jupyterlab
 # Start JupyterLab in the background
+echo "Starting JupyterLab..."
 jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.allow_origin='*' &
 echo "JupyterLab started"
 
 # Check if user's script exists in /workspace
 if [ ! -f /workspace/start_user.sh ]; then
     # If not, copy the original script to /workspace
+    echo "No user script found, copying the original script to /workspace/start_user.sh"
     cp /scripts/boot-user.sh /workspace/start_user.sh
+else:
+    echo "Existing user script found, will not overwrite /workspace/start_user.sh"
 fi
 
 # Execute the user's script
