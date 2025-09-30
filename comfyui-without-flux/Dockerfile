@@ -13,8 +13,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl nginx g++
 
-RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu129
-
 # nginx: Copy the 'default' configuration file to the appropriate location
 COPY default /etc/nginx/sites-available/default
 

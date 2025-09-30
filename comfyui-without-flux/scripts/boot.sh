@@ -22,6 +22,9 @@ else
 fi
 source /workspace/venv/bin/activate
 
+echo "Ensure latest torch, torchvision, torchaudio..."
+pip3 install -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu129
+
 # Move ComfyUI's folder to $VOLUME so models and all config will persist
 /scripts/comfyui-on-workspace.sh
 
