@@ -11,6 +11,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Install Python plus openssh, which is our minimum set of required packages.
 RUN apt-get update -y && \
+    apt-get install -y python3 python3-pip python3-venv && \
     apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl nginx g++
 
 # nginx: Copy the 'default' configuration file to the appropriate location
