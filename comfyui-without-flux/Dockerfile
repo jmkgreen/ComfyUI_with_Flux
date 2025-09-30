@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime AS comfyui
+FROM nvidia/cuda:12.9.1-cudnn-devel-ubuntu22.04 AS comfyui
 
 # RunPod Pods run from a Docker image, thus everything we ship needs to be in this Dockerfile and copied into the image.
 # However, for persistence across multiple Pods, we use a volume mounted to /workspace, so anything that needs to be persistent should be in /workspace.
@@ -12,6 +12,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install Python plus openssh, which is our minimum set of required packages.
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs wget vim zip unzip curl nginx g++
+
+RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu129
 
 # nginx: Copy the 'default' configuration file to the appropriate location
 COPY default /etc/nginx/sites-available/default
