@@ -64,7 +64,7 @@ if [ ! -f /workspace/start_user.sh ]; then
     # If not, copy the original script to /workspace
     echo "No user script found, copying the original script to /workspace/start_user.sh"
     cp /scripts/boot-user.sh /workspace/start_user.sh
-else:
+else
     echo "Existing user script found, will not overwrite /workspace/start_user.sh"
 fi
 
