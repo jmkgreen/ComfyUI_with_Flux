@@ -22,6 +22,14 @@ else
 fi
 source /workspace/venv/bin/activate
 
+# Ensure pip and numpy are up to date
+echo "Using python from $(which python)"
+echo "Python version: $(python --version)"
+echo "Using pip from $(which pip)"
+echo "Upgrading pip and numpy..."
+pip install --upgrade pip numpy setuptools wheel
+echo "Pip version: $(pip --version)"
+
 echo "Ensure latest torch, torchvision, torchaudio..."
 pip3 install -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu129
 
@@ -43,13 +51,6 @@ fi
 # Start nginx as reverse proxy to enable api access
 service nginx start
 
-# Ensure pip and numpy are up to date
-echo "Using python from $(which python)"
-echo "Python version: $(python --version)"
-echo "Using pip from $(which pip)"
-echo "Upgrading pip and numpy..."
-pip install --upgrade pip numpy
-echo "Pip version: $(pip --version)"
 echo "ComfyUI version: $(cd /workspace/ComfyUI && git rev-parse HEAD)"
 echo "AI-Toolkit version: $(cd /workspace/ai-toolkit && git rev-parse HEAD)"
 echo "Path: $PATH"
