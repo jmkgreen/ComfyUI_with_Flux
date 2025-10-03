@@ -66,3 +66,16 @@ else
     echo "Downloading $file"
     wget -O $file $url --progress=bar:force:noscroll
 fi
+
+file="Qwen-Image-Lightning-4steps-V1.0.safetensors"
+echo "Downloading ${file}"
+cd /workspace/ComfyUI/models/loras/
+
+url="https://huggingface.co/lightx2v/Qwen-Image-Lightning/resolve/main/${file}?download=true"
+
+if [ -f "$file" ]; then
+    echo "$file already exists."
+else
+    echo "Downloading $file"
+    wget -O $file $url --progress=bar:force:noscroll
+fi
