@@ -89,6 +89,8 @@ COPY --chmod=755 scripts/download_ALL.sh /scripts/download_ALL.sh
 COPY --chmod=755 scripts/make_venv.sh /scripts/make_venv.sh
 COPY --chmod=755 scripts/download_flux.sh /scripts/download_flux.sh
 COPY --chmod=755 scripts/download_wan2.1.sh /scripts/download_wan2.1.sh
+COPY --chmod=755 scripts/download_wan2.2.sh /scripts/download_wan2.2.sh
+COPY --chmod=755 scripts/download_qwen-bf16.sh /scripts/download_qwen-bf16.sh
 COPY --chmod=755 scripts/disable_mixlab.sh /scripts/disable_mixlab.sh
 
 # # SUPIR Upscale
