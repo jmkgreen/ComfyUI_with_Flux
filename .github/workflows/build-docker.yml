@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sundays at midnight
 
 env:
   REGISTRY: ghcr.io
