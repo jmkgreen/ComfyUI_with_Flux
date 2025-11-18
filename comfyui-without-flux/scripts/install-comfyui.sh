@@ -12,6 +12,10 @@ echo "Installing custom nodes"
 cd /workspace/ComfyUI/custom_nodes && \
     git clone https://github.com/ltdrdata/ComfyUI-Manager.git && \
     git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git && \
+    git clone https://github.com/ShammiG/ComfyUI-Simple_Readable_Metadata-SG && \
+    git clone https://github.com/kijai/ComfyUI-KJNodes && \
+    git clone https://github.com/kijai/ComfyUI-WanVideoWrapper && \
+    git clone https://github.com/VraethrDalkr/ComfyUI-TripleKSampler && \
     cd /workspace/ComfyUI && \
     mkdir pysssss-workflows
 echo "Custom nodes installed"
