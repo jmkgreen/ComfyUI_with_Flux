@@ -92,6 +92,7 @@ COPY --chmod=755 scripts/download_flux.sh /scripts/download_flux.sh
 COPY --chmod=755 scripts/download_wan2.1.sh /scripts/download_wan2.1.sh
 COPY --chmod=755 scripts/download_wan2.2.sh /scripts/download_wan2.2.sh
 COPY --chmod=755 scripts/download_qwen-bf16.sh /scripts/download_qwen-bf16.sh
+COPY --chmod=755 scripts/download_qwen-image-2512-fp8.sh /scripts/download_qwen-image-2512-fp8.sh
 COPY --chmod=755 scripts/disable_mixlab.sh /scripts/disable_mixlab.sh
 
 # # SUPIR Upscale
