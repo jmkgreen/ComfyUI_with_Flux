@@ -77,6 +77,7 @@ FROM with_jupyter AS final
 
 # Add download scripts for additional models
 COPY --chmod=755 scripts/download_Controlnet.sh /scripts/download_Controlnet.sh
+COPY --chmod=755 scripts/download_Chroma1.sh /scripts/download_Chroma1.sh
 COPY --chmod=755 scripts/download_fp16.sh /scripts/download_fp16.sh
 COPY --chmod=755 scripts/download_LDSR.sh /scripts/download_LDSR.sh
 COPY --chmod=755 scripts/download_SUPIR.sh /scripts/download_SUPIR.sh

@@ -4,6 +4,7 @@ echo "Downloading all models"
 
 bash download_flux.sh
 bash download_Controlnet.sh
+bash download_Chroma1.sh
 bash download_LDSR.sh
 bash download_SUPIR.sh
 bash download_fp16.sh
