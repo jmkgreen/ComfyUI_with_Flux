@@ -22,13 +22,14 @@ else
 fi
 source /workspace/venv/bin/activate
 
-# Ensure pip and numpy are up to date
+# Ensure pip and other utils are up to date
 echo "Using python from $(which python)"
 echo "Python version: $(python --version)"
 echo "Using pip from $(which pip)"
-echo "Upgrading pip and numpy..."
-pip install --upgrade pip numpy setuptools wheel
+echo "Upgrading pip, setuptools and wheel..."
+pip install --upgrade pip setuptools wheel
 echo "Pip version: $(pip --version)"
+pip install -U numpy==1.26.4
 
 echo "Ensure latest torch, torchvision, torchaudio..."
 pip3 install -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu129
