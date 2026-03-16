@@ -42,7 +42,12 @@ WORKDIR /workspace
 EXPOSE 8188
 
 # Download and move flux_dev_example.png
-RUN wget -q "https://github.com/comfyanonymous/ComfyUI_examples/blob/master/flux/flux_dev_example.png" -P /ComfyUI
+RUN wget -nv \
+  --tries=3 \
+  --waitretry=5 \
+  --timeout=20 \
+  -O /ComfyUI/flux_dev_example.png \
+  "https://raw.githubusercontent.com/comfyanonymous/ComfyUI_examples/master/flux/flux_dev_example.png"
 
 # For Xlabs-AI/flux-RealismLora and others
 RUN apt-get install -y libgl1-mesa-glx libglib2.0-0 && \
