@@ -13,26 +13,36 @@ then
     service ssh start
 fi
 
-# Check if there is a venv directory, if so, activate it
+# Activate existing venv, or create one and install all packages on first run.
+# Packages are NOT upgraded on warm restarts (existing venv) to avoid the
+# ~5 min torch download on every pod start. Set FORCE_PACKAGE_UPDATE=1 to
+# re-run upgrades without recreating the venv.
 if [ -d "/workspace/venv" ]; then
-    echo "venv directory found, using existing virtual environment..."
+    echo "venv found, activating existing virtual environment..."
+    source /workspace/venv/bin/activate
 else
-    echo "No venv directory found, installing to /workspace/venv..."
+    echo "No venv found, creating /workspace/venv and installing packages..."
     python3 -m venv /workspace/venv
+    source /workspace/venv/bin/activate
+    pip install --upgrade pip setuptools wheel gguf segment-anything sageattention onnx onnxruntime
+    pip install numpy==1.26.4
+    pip install piexif==1.1.3
+    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu129
+    pip3 install jupyterlab
 fi
-source /workspace/venv/bin/activate
 
-# Ensure pip and other utils are up to date
+if [ "${FORCE_PACKAGE_UPDATE}" = "1" ]; then
+    echo "FORCE_PACKAGE_UPDATE=1, upgrading packages..."
+    pip install --upgrade pip setuptools wheel gguf segment-anything sageattention onnx onnxruntime
+    pip install numpy==1.26.4
+    pip install piexif==1.1.3
+    pip3 install -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu129
+    pip3 install -U jupyterlab
+fi
+
 echo "Using python from $(which python)"
 echo "Python version: $(python --version)"
-echo "Using pip from $(which pip)"
-echo "Upgrading pip, setuptools and wheel..."
-pip install --upgrade pip setuptools wheel
 echo "Pip version: $(pip --version)"
-pip install -U numpy==1.26.4
-
-echo "Ensure latest torch, torchvision, torchaudio..."
-pip3 install -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu129
 
 # Move ComfyUI's folder to $VOLUME so models and all config will persist
 /scripts/comfyui-on-workspace.sh
@@ -56,9 +66,6 @@ echo "ComfyUI version: $(cd /workspace/ComfyUI && git rev-parse HEAD)"
 echo "AI-Toolkit version: $(cd /workspace/ai-toolkit && git rev-parse HEAD)"
 echo "Path: $PATH"
 
-# Ensure latest JupyterLab
-echo "Installing/Upgrading JupyterLab..."
-pip3 install -U jupyterlab
 # Start JupyterLab in the background
 echo "Starting JupyterLab..."
 jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.allow_origin='*' &
