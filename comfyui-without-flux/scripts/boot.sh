@@ -14,7 +14,8 @@ fi
 echo "Detected GPU fingerprint: ${CURRENT_GPU_FINGERPRINT}"
 
 install_base_packages() {
-    pip install --upgrade pip setuptools wheel gguf segment-anything onnx onnxruntime
+    pip install --upgrade pip wheel gguf segment-anything onnx onnxruntime
+    pip install "setuptools<82"
     pip install numpy==1.26.4
     pip install piexif==1.1.3
     pip3 install --upgrade torch torchvision torchaudio --index-url "${TORCH_INDEX_URL}"
@@ -187,6 +188,68 @@ else:
 PY
 }
 
+install_ultralytics_nms_fallback_patch() {
+    if [ "${ENABLE_ULTRALYTICS_NMS_CPU_FALLBACK:-1}" != "1" ]; then
+        echo "Skipping ultralytics NMS CPU fallback patch (set ENABLE_ULTRALYTICS_NMS_CPU_FALLBACK=1 to enable)."
+        return 0
+    fi
+
+    python3 - <<'PY'
+import pathlib
+import site
+
+needle = "        i = torchvision.ops.nms(boxes, scores, iou_thres)"
+replacement = """        try:
+            i = torchvision.ops.nms(boxes, scores, iou_thres)
+        except Exception as exc:
+            message = str(exc).lower()
+            if \"no kernel image is available\" in message or \"cudaerrornokernelimagefordevice\" in message:
+                i = torchvision.ops.nms(boxes.detach().cpu(), scores.detach().cpu(), iou_thres)
+                if hasattr(i, \"to\") and hasattr(boxes, \"device\"):
+                    i = i.to(boxes.device)
+            else:
+                raise"""
+
+site_packages = []
+try:
+    site_packages.extend(site.getsitepackages())
+except Exception:
+    pass
+
+try:
+    user_site = site.getusersitepackages()
+    if user_site:
+        site_packages.append(user_site)
+except Exception:
+    pass
+
+patched = False
+for sp in site_packages:
+    target = pathlib.Path(sp) / "ultralytics" / "utils" / "nms.py"
+    if not target.exists():
+        continue
+
+    text = target.read_text(encoding="utf-8")
+    if "no kernel image is available" in text and "torchvision.ops.nms(boxes.detach().cpu()" in text:
+        print(f"Ultralytics NMS fallback patch already present at {target}")
+        patched = True
+        break
+
+    if needle not in text:
+        print(f"WARNING: expected NMS call not found in {target}; patch skipped")
+        continue
+
+    text = text.replace(needle, replacement, 1)
+    target.write_text(text, encoding="utf-8")
+    print(f"Installed ultralytics NMS fallback patch at {target}")
+    patched = True
+    break
+
+if not patched:
+    print("WARNING: could not locate ultralytics/utils/nms.py to patch")
+PY
+}
+
 if [[ $PUBLIC_KEY ]]
 then
     mkdir -p ~/.ssh
@@ -256,6 +319,8 @@ echo "Pip version: $(pip --version)"
 
 # Move ComfyUI's folder to $VOLUME so models and all config will persist
 /scripts/comfyui-on-workspace.sh
+
+install_ultralytics_nms_fallback_patch
 
 # ComfyUI requirements may reintroduce xformers; keep it opt-in to avoid
 # architecture-specific kernel image issues on mixed GPU fleets.
