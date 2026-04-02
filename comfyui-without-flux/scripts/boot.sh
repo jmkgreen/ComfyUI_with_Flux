@@ -60,6 +60,42 @@ PY
     fi
 }
 
+patch_impact_subpack_detector_device() {
+    if [ "${FORCE_IMPACT_ULTRALYTICS_CPU_DETECTOR:-1}" != "1" ]; then
+        echo "Skipping Impact Subpack detector CPU patch (set FORCE_IMPACT_ULTRALYTICS_CPU_DETECTOR=1 to enable)."
+        return 0
+    fi
+
+    TARGET_FILE="/workspace/ComfyUI/custom_nodes/comfyui-impact-subpack/modules/subcore.py"
+    if [ ! -f "${TARGET_FILE}" ]; then
+        echo "Impact Subpack detector file not found yet, skipping CPU patch: ${TARGET_FILE}"
+        return 0
+    fi
+
+    python3 - <<'PY'
+from pathlib import Path
+
+target = Path("/workspace/ComfyUI/custom_nodes/comfyui-impact-subpack/modules/subcore.py")
+text = target.read_text(encoding="utf-8")
+
+already_cpu = "pred = model(image, conf=confidence, device='cpu')" in text
+if already_cpu:
+    print(f"Impact Subpack detector CPU patch already present at {target}")
+    raise SystemExit(0)
+
+needle = "    pred = model(image, conf=confidence, device=device)"
+replacement = "    pred = model(image, conf=confidence, device='cpu')"
+
+if needle not in text:
+    print(f"WARNING: expected detector line not found in {target}; patch skipped")
+    raise SystemExit(0)
+
+text = text.replace(needle, replacement, 1)
+target.write_text(text, encoding="utf-8")
+print(f"Applied Impact Subpack detector CPU patch at {target}")
+PY
+}
+
 install_optional_cuda_extensions() {
     if [ "${ENABLE_SAGEATTENTION:-0}" = "1" ]; then
         echo "ENABLE_SAGEATTENTION=1, attempting to install sageattention..."
@@ -329,6 +365,8 @@ echo "Pip version: $(pip --version)"
 
 # Move ComfyUI's folder to $VOLUME so models and all config will persist
 /scripts/comfyui-on-workspace.sh
+
+patch_impact_subpack_detector_device
 
 # ComfyUI requirements may reintroduce xformers; keep it opt-in to avoid
 # architecture-specific kernel image issues on mixed GPU fleets.
