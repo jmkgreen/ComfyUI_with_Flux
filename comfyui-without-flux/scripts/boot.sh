@@ -5,6 +5,7 @@ echo "pod started"
 GPU_FINGERPRINT_FILE="/workspace/venv/.gpu-fingerprint"
 CURRENT_GPU_FINGERPRINT="unknown"
 FORCE_PACKAGE_UPDATE="${FORCE_PACKAGE_UPDATE:-0}"
+TORCH_INDEX_URL="${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu129}"
 
 if command -v nvidia-smi >/dev/null 2>&1; then
     CURRENT_GPU_FINGERPRINT="$(nvidia-smi --query-gpu=name,compute_cap,driver_version --format=csv,noheader | head -n 1)"
@@ -16,8 +17,13 @@ install_base_packages() {
     pip install --upgrade pip setuptools wheel gguf segment-anything onnx onnxruntime
     pip install numpy==1.26.4
     pip install piexif==1.1.3
-    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu129
+    pip3 install --upgrade torch torchvision torchaudio --index-url "${TORCH_INDEX_URL}"
     pip3 install jupyterlab
+}
+
+reinstall_torch_stack() {
+    echo "Reinstalling torch stack from ${TORCH_INDEX_URL}..."
+    pip3 install --upgrade --force-reinstall --no-cache-dir torch torchvision torchaudio --index-url "${TORCH_INDEX_URL}"
 }
 
 install_optional_cuda_extensions() {
@@ -33,6 +39,75 @@ install_optional_cuda_extensions() {
         fi
     else
         echo "Skipping sageattention install (set ENABLE_SAGEATTENTION=1 to enable)."
+        pip uninstall -y sageattention >/dev/null 2>&1 || true
+    fi
+
+    if [ "${ENABLE_XFORMERS:-0}" = "1" ]; then
+        echo "ENABLE_XFORMERS=1, attempting to install xformers..."
+        if ! pip install xformers; then
+            echo "WARNING: xformers installation failed."
+            if [ "${STRICT_CUDA_EXTENSION_INSTALL:-0}" = "1" ]; then
+                echo "STRICT_CUDA_EXTENSION_INSTALL=1, stopping startup."
+                exit 1
+            fi
+            echo "Continuing without xformers."
+            pip uninstall -y xformers >/dev/null 2>&1 || true
+        fi
+    else
+        echo "Skipping xformers install (set ENABLE_XFORMERS=1 to enable)."
+        pip uninstall -y xformers >/dev/null 2>&1 || true
+    fi
+}
+
+run_cuda_self_test() {
+    python3 - <<'PY'
+import sys
+import torch
+
+try:
+    if not torch.cuda.is_available():
+        print("CUDA self-test: torch.cuda.is_available() is false")
+        raise RuntimeError("cuda_not_available")
+
+    device_name = torch.cuda.get_device_name(0)
+    x = torch.randn((512, 512), device="cuda")
+    y = torch.mm(x, x)
+    torch.cuda.synchronize()
+    print(f"CUDA self-test passed on: {device_name}; mean={y.mean().item():.6f}")
+except Exception as exc:
+    message = str(exc).lower()
+    print(f"CUDA self-test failed: {exc}")
+    if "no kernel image is available" in message or "cudaerrornokernelimagefordevice" in message:
+        sys.exit(86)
+    sys.exit(1)
+PY
+}
+
+run_cuda_self_test_with_recovery() {
+    if [ "${RUN_CUDA_SELF_TEST:-1}" != "1" ]; then
+        echo "Skipping CUDA self-test (set RUN_CUDA_SELF_TEST=1 to enable)."
+        return 0
+    fi
+
+    run_cuda_self_test
+    CUDA_TEST_RC=$?
+
+    if [ "${CUDA_TEST_RC}" = "86" ] && [ "${AUTO_RECOVER_CUDA_KERNEL_IMAGE_ERROR:-1}" = "1" ]; then
+        echo "Detected 'no kernel image' CUDA failure. Running automatic recovery..."
+        pip uninstall -y xformers sageattention >/dev/null 2>&1 || true
+        reinstall_torch_stack
+        install_optional_cuda_extensions
+        run_cuda_self_test
+        CUDA_TEST_RC=$?
+    fi
+
+    if [ "${CUDA_TEST_RC}" != "0" ]; then
+        echo "CUDA self-test did not pass (exit code: ${CUDA_TEST_RC})."
+        if [ "${STRICT_CUDA_SELF_TEST:-1}" = "1" ]; then
+            echo "STRICT_CUDA_SELF_TEST=1, stopping startup to avoid runtime generation failures."
+            exit 1
+        fi
+        echo "Continuing startup despite CUDA self-test failure."
     fi
 }
 
@@ -104,8 +179,16 @@ echo "Pip version: $(pip --version)"
 # Move ComfyUI's folder to $VOLUME so models and all config will persist
 /scripts/comfyui-on-workspace.sh
 
+# ComfyUI requirements may reintroduce xformers; keep it opt-in to avoid
+# architecture-specific kernel image issues on mixed GPU fleets.
+if [ "${ENABLE_XFORMERS:-0}" != "1" ]; then
+    pip uninstall -y xformers >/dev/null 2>&1 || true
+fi
+
 # Move ai-toolkit's folder to $VOLUME so models and all config will persist
 /scripts/ai-toolkit-on-workspace.sh
+
+run_cuda_self_test_with_recovery
 
 #!/bin/bash
 if [[ -z "${HF_TOKEN}" ]] || [[ "${HF_TOKEN}" == "enter_your_huggingface_token_here" ]]
