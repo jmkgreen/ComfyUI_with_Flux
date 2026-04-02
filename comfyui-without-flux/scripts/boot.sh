@@ -160,6 +160,43 @@ def _install_torchvision_nms_cpu_fallback() -> None:
 
 
 _install_torchvision_nms_cpu_fallback()
+
+
+def _install_ultralytics_nms_cpu_fallback() -> None:
+    try:
+        import ultralytics.utils.nms as u_nms
+    except Exception:
+        return
+
+    original_non_max_suppression = getattr(u_nms, "non_max_suppression", None)
+    if original_non_max_suppression is None:
+        return
+
+    if getattr(original_non_max_suppression, "_kernel_image_fallback_wrapped", False):
+        return
+
+    def _non_max_suppression_with_fallback(prediction, *args, **kwargs):
+        try:
+            return original_non_max_suppression(prediction, *args, **kwargs)
+        except Exception as exc:
+            message = str(exc).lower()
+            if "no kernel image is available" not in message and "cudaerrornokernelimagefordevice" not in message:
+                raise
+
+            try:
+                is_cuda_prediction = hasattr(prediction, "is_cuda") and prediction.is_cuda
+                if is_cuda_prediction:
+                    cpu_prediction = prediction.detach().cpu()
+                    return original_non_max_suppression(cpu_prediction, *args, **kwargs)
+            except Exception:
+                pass
+            raise
+
+    _non_max_suppression_with_fallback._kernel_image_fallback_wrapped = True
+    u_nms.non_max_suppression = _non_max_suppression_with_fallback
+
+
+_install_ultralytics_nms_cpu_fallback()
 """
 
 site_packages = []
@@ -185,68 +222,6 @@ for sp in site_packages:
         break
 else:
     print("WARNING: could not locate site-packages to install torchvision NMS fallback patch")
-PY
-}
-
-install_ultralytics_nms_fallback_patch() {
-    if [ "${ENABLE_ULTRALYTICS_NMS_CPU_FALLBACK:-1}" != "1" ]; then
-        echo "Skipping ultralytics NMS CPU fallback patch (set ENABLE_ULTRALYTICS_NMS_CPU_FALLBACK=1 to enable)."
-        return 0
-    fi
-
-    python3 - <<'PY'
-import pathlib
-import site
-
-needle = "        i = torchvision.ops.nms(boxes, scores, iou_thres)"
-replacement = """        try:
-            i = torchvision.ops.nms(boxes, scores, iou_thres)
-        except Exception as exc:
-            message = str(exc).lower()
-            if \"no kernel image is available\" in message or \"cudaerrornokernelimagefordevice\" in message:
-                i = torchvision.ops.nms(boxes.detach().cpu(), scores.detach().cpu(), iou_thres)
-                if hasattr(i, \"to\") and hasattr(boxes, \"device\"):
-                    i = i.to(boxes.device)
-            else:
-                raise"""
-
-site_packages = []
-try:
-    site_packages.extend(site.getsitepackages())
-except Exception:
-    pass
-
-try:
-    user_site = site.getusersitepackages()
-    if user_site:
-        site_packages.append(user_site)
-except Exception:
-    pass
-
-patched = False
-for sp in site_packages:
-    target = pathlib.Path(sp) / "ultralytics" / "utils" / "nms.py"
-    if not target.exists():
-        continue
-
-    text = target.read_text(encoding="utf-8")
-    if "no kernel image is available" in text and "torchvision.ops.nms(boxes.detach().cpu()" in text:
-        print(f"Ultralytics NMS fallback patch already present at {target}")
-        patched = True
-        break
-
-    if needle not in text:
-        print(f"WARNING: expected NMS call not found in {target}; patch skipped")
-        continue
-
-    text = text.replace(needle, replacement, 1)
-    target.write_text(text, encoding="utf-8")
-    print(f"Installed ultralytics NMS fallback patch at {target}")
-    patched = True
-    break
-
-if not patched:
-    print("WARNING: could not locate ultralytics/utils/nms.py to patch")
 PY
 }
 
@@ -319,8 +294,6 @@ echo "Pip version: $(pip --version)"
 
 # Move ComfyUI's folder to $VOLUME so models and all config will persist
 /scripts/comfyui-on-workspace.sh
-
-install_ultralytics_nms_fallback_patch
 
 # ComfyUI requirements may reintroduce xformers; keep it opt-in to avoid
 # architecture-specific kernel image issues on mixed GPU fleets.
