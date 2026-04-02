@@ -111,6 +111,82 @@ run_cuda_self_test_with_recovery() {
     fi
 }
 
+install_torchvision_nms_fallback_patch() {
+    if [ "${ENABLE_TORCHVISION_NMS_CPU_FALLBACK:-1}" != "1" ]; then
+        echo "Skipping torchvision NMS CPU fallback patch (set ENABLE_TORCHVISION_NMS_CPU_FALLBACK=1 to enable)."
+        return 0
+    fi
+
+    python3 - <<'PY'
+import pathlib
+import site
+
+PATCH_CONTENT = """\
+\"\"\"Runtime compatibility patch for GPUs where torchvision CUDA NMS kernels are unavailable.\"\"\"
+
+from __future__ import annotations
+
+
+def _install_torchvision_nms_cpu_fallback() -> None:
+    try:
+        import torch
+        import torchvision.ops as tv_ops
+    except Exception:
+        return
+
+    original_nms = getattr(tv_ops, "nms", None)
+    if original_nms is None:
+        return
+
+    if getattr(original_nms, "_kernel_image_fallback_wrapped", False):
+        return
+
+    def _nms_with_fallback(boxes, scores, iou_threshold):
+        try:
+            return original_nms(boxes, scores, iou_threshold)
+        except Exception as exc:
+            message = str(exc).lower()
+            if "no kernel image is available" not in message and "cudaerrornokernelimagefordevice" not in message:
+                raise
+
+            if hasattr(boxes, "is_cuda") and boxes.is_cuda:
+                cpu_idx = original_nms(boxes.detach().cpu(), scores.detach().cpu(), iou_threshold)
+                return cpu_idx.to(boxes.device)
+            raise
+
+    _nms_with_fallback._kernel_image_fallback_wrapped = True
+    tv_ops.nms = _nms_with_fallback
+
+
+_install_torchvision_nms_cpu_fallback()
+"""
+
+site_packages = []
+for getter in (site.getsitepackages,):
+    try:
+        site_packages.extend(getter())
+    except Exception:
+        pass
+
+try:
+    user_site = site.getusersitepackages()
+    if user_site:
+        site_packages.append(user_site)
+except Exception:
+    pass
+
+for sp in site_packages:
+    path = pathlib.Path(sp)
+    if path.exists() and "site-packages" in str(path):
+        target = path / "sitecustomize.py"
+        target.write_text(PATCH_CONTENT, encoding="utf-8")
+        print(f"Installed torchvision NMS fallback patch at {target}")
+        break
+else:
+    print("WARNING: could not locate site-packages to install torchvision NMS fallback patch")
+PY
+}
+
 if [[ $PUBLIC_KEY ]]
 then
     mkdir -p ~/.ssh
@@ -167,6 +243,8 @@ if [ "${FORCE_PACKAGE_UPDATE}" = "1" ]; then
     install_base_packages
     install_optional_cuda_extensions
 fi
+
+install_torchvision_nms_fallback_patch
 
 if [ "${CURRENT_GPU_FINGERPRINT}" != "unknown" ]; then
     echo "${CURRENT_GPU_FINGERPRINT}" > "${GPU_FINGERPRINT_FILE}"
