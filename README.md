@@ -29,6 +29,19 @@ Some scripts download files from Hugging Face. Some of these require authenticat
 
 The Docker image built by this source project will have an up-to-date ComfyUI included. However, this ComfyUI will only be copied into your `/workspace/ComfyUI` if this doesn't already exist. First run with a new `/workspace`: you'll get the latest version; beyond this you need to run ComfyUI updates yourself which is easy to do within the UI itself.
 
+## GPU Compatibility Notes
+
+This image now detects when `/workspace/venv` is reused across different GPU models (for example RTX 4000 Ada and RTX Pro 4500) and triggers a one-time package refresh by default.
+
+Environment variables you can use:
+
+* `AUTO_REFRESH_ON_GPU_CHANGE=1` (default): refresh Python packages when GPU fingerprint changes.
+* `AUTO_REFRESH_WHEN_NO_GPU_FINGERPRINT=1` (default): one-time refresh for older volumes that predate fingerprint tracking.
+* `UNINSTALL_SAGEATTENTION_ON_GPU_CHANGE=1` (default): remove `sageattention` on GPU change to avoid stale kernels.
+* `ENABLE_SAGEATTENTION=1` (default is disabled): opt-in installation of `sageattention`.
+* `STRICT_CUDA_EXTENSION_INSTALL=1`: fail startup if optional CUDA extension install fails.
+* `FORCE_PACKAGE_UPDATE=1`: manually force package refresh at boot.
+
 ## Original Documentation
 
 ## API
