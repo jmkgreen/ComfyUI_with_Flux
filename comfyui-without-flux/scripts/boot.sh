@@ -27,6 +27,39 @@ reinstall_torch_stack() {
     pip3 install --upgrade --force-reinstall --no-cache-dir torch torchvision torchaudio --index-url "${TORCH_INDEX_URL}"
 }
 
+repair_ultralytics_if_broken() {
+    if [ "${AUTO_REPAIR_ULTRALYTICS:-1}" != "1" ]; then
+        echo "Skipping Ultralytics integrity repair (set AUTO_REPAIR_ULTRALYTICS=1 to enable)."
+        return 0
+    fi
+
+    python3 - <<'PY'
+import importlib.util
+import py_compile
+import sys
+
+try:
+    spec = importlib.util.find_spec("ultralytics.utils.nms")
+    if spec is None or spec.origin is None:
+        print("Ultralytics not present yet; skipping integrity check.")
+        sys.exit(0)
+
+    py_compile.compile(spec.origin, doraise=True)
+    print(f"Ultralytics nms.py integrity check passed: {spec.origin}")
+    sys.exit(0)
+except Exception as exc:
+    print(f"Ultralytics integrity check failed: {exc}")
+    sys.exit(91)
+PY
+
+    CHECK_RC=$?
+    if [ "${CHECK_RC}" = "91" ]; then
+        ULTRALYTICS_VERSION="${ULTRALYTICS_VERSION:-8.4.8}"
+        echo "Repairing Ultralytics by force-reinstalling version ${ULTRALYTICS_VERSION}..."
+        pip install --force-reinstall --no-cache-dir --no-deps "ultralytics==${ULTRALYTICS_VERSION}"
+    fi
+}
+
 install_optional_cuda_extensions() {
     if [ "${ENABLE_SAGEATTENTION:-0}" = "1" ]; then
         echo "ENABLE_SAGEATTENTION=1, attempting to install sageattention..."
@@ -281,6 +314,8 @@ if [ "${FORCE_PACKAGE_UPDATE}" = "1" ]; then
     install_base_packages
     install_optional_cuda_extensions
 fi
+
+repair_ultralytics_if_broken
 
 install_torchvision_nms_fallback_patch
 
